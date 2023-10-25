@@ -2,9 +2,15 @@
 # About the project
 
 *Write a short description about the course and add a link to your GitHub repository here. This is an R Markdown (.Rmd) file so you should use R Markdown syntax.*
+
 ## A short description and a link to the githuib repository
 This is a course that should help me to better work with data analysis in the future. I already *love* __markdown__ :)
-https://github.com/crastr/IODS-project
+The crash course is nice, as i'm not that used to the tidyverse synthaxis, and was taught to use base R subsets, slices and such. 
+
+Here's the link to the repository\
+[link to the github repository](https://github.com/crastr/IODS-project)
+
+
 ```{r}
 # This is a so-called "R chunk" where you can write R code.
 
