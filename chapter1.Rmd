@@ -8,7 +8,8 @@
 This is a course that should help me to better work with data analysis in the future. I already *love* __markdown__ ***:)***. I have R knowldege, but I never complete a course in the language, so sometimes I find I am doing very simple things the hardest way imaginable. I hope this course will close these gaps in my knowledge.
 
 
-The crash course is nice, as I'm not that used to the tidyverse synthaxis, and was taught to use base R (subsets, slices and such).
+The crash course is nice, as I'm not that used to the tidyverse syntax, and was taught to use base R (subsets, slices and such).
+I use git for my work, so it's not very convenient for me to start using PATs. But i checked, and it indeed works. I just prefer to do it through gpg. 
 
 
 Here's the link to the repository\
