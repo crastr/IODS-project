@@ -1,6 +1,70 @@
-# Insert chapter 2 title here
+# 2: Regression and model validation
 
 *Describe the work you have done this week and summarize your learning.*
+
+## Data wrangling.
+
+After understanding the metadata file and skipping the Finnish language instructions that were unnecessary it was easy to prepare a data file [this data file](https://github.com/crastr/IODS-project/blob/master/data/learning2014.txt). The script can be found [here](https://github.com/crastr/IODS-project/blob/master/data/create_learning2020.R).I used plyr and tiidyverse to do the conversions of the raw data into a workable file.
+
+## Analysis
+The dataset is the result of a survey on teaching and learning that was conducted as a research project in 2014.
+The dataset was loaded in the next chunk and the dimensions and structure of the document are output.
+
+```{r}
+learning2014_csv <- read_csv("/home/alex/ods_course/IODS-project_R/data/learning2014_AA.csv")
+dim(learning2014.csv)
+
+```
+```{r}
+str(learning2014_csv)
+
+```
+The data.frame contains 166 lines and 7 columns. The first column encodes gender, and has the character type. The rest are all numeric, and contain the data which will be used for the regression analysis.
+The *"attitude"*, *"deep"*, *"stra"*, and *"surf"* columns contain the combinations of results from the original dataframe. The full metadata explanation can be found [here](https://github.com/crastr/IODS-project/blob/master/data/JYTOPKYS2-meta.txt). The explanation for the study can be found [here](http://www.slideshare.net/kimmovehkalahti/the-relationship-between-learning-approaches-and-students-achievements-in-an-introductory-statistics-course-in-finland).
+Briefly:
+  - *attitude* variable is *Global attitude toward statistics* composite score of the questions having to do with global attitude toward statistics
+  - *deep* variable is *Deep approach* adjusted composite score of the questions connected with deep understanding of statistics
+  - *stra* variable is *Strategic approach* adjusted composite score of the questions connected with how strategically the participant approaches the subject
+  - *surf* variable is *Surface approach* adjusted composite score of the questions connected with how whether the participant can understand the material deeply and whther the participants has problems studying.
+
+```{r summaries}
+summaries <- learning2014_csv %>%
+  summarise(across(where(is.numeric), list(mean = ~mean(.), sd = ~sd(.), min = ~min(.), max = ~max(.), median = ~median(.))))
+
+print(t(summaries))
+```
+
+```{r}
+ggplot(learning2014_csv, aes(x = age)) +
+  geom_histogram(binwidth = 5, fill = "#D6604D", color = "black") +
+  labs(title = "Age Distribution", x = "Age", y = "Count") +
+  theme_minimal()
+
+# Boxplot for 'attitude'
+ggplot(learning2014_csv, aes(x = deep)) +  # x = 1 creates a single boxplot
+  geom_density(fill = "#D6604D", color = "black") +
+  labs(title = "Boxplot of Deep approach score", x = "", y = "Attitude") +
+  theme_minimal()
+
+# Boxplot for 'attitude'
+ggplot(learning2014_csv, aes(x = stra)) +  # x = 1 creates a single boxplot
+  geom_density(fill = "#D6604D", color = "black") +
+  labs(title = "Boxplot of strategic approach score", x = "", y = "Stra") +
+  theme_minimal()
+
+ggplot(learning2014_csv, aes(x = surf)) +  # x = 1 creates a single boxplot
+  geom_density(fill = "#D6604D", color = "black") +
+  labs(title = "Boxplot of surface approach score", x = "", y = "") +
+  theme_minimal()
+
+# For the categorical variable 'gender', a bar chart can be used
+ggplot(learning2014_csv, aes(x = points)) +
+  geom_bar(fill = "#D6604D", color = "black") +
+  labs(title = "Points Distribution", x = "Points", y = "Count") +
+  theme_minimal()
+```
+
+
 
 - Describe your work and results clearly. 
 - Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods.
