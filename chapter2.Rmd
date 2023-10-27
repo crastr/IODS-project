@@ -9,10 +9,13 @@ After understanding the metadata file and skipping the Finnish language instruct
 ## Analysis
 The dataset is the result of a survey on teaching and learning that was conducted as a research project in 2014.
 The dataset was loaded in the next chunk and the dimensions and structure of the document are output.
+```{r}
+library(tidyverse)
+```
 
 ```{r}
 learning2014_csv <- read_csv("/home/alex/ods_course/IODS-project_R/data/learning2014_AA.csv")
-dim(learning2014.csv)
+dim(learning2014_csv)
 
 ```
 ```{r}
