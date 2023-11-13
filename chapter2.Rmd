@@ -25,7 +25,9 @@ str(learning2014_csv)
 ```
 The data.frame contains 166 lines and 7 columns. The first column encodes gender, and has the character type. The rest are all numeric, and contain the data which will be used for the regression analysis.
 The *"attitude"*, *"deep"*, *"stra"*, and *"surf"* columns contain the combinations of results from the original dataframe. The full metadata explanation can be found [here](https://github.com/crastr/IODS-project/blob/master/data/JYTOPKYS2-meta.txt). The explanation for the study can be found [here](http://www.slideshare.net/kimmovehkalahti/the-relationship-between-learning-approaches-and-students-achievements-in-an-introductory-statistics-course-in-finland).
+
 Briefly:
+
   - *attitude* variable is *Global attitude toward statistics* composite score of the questions having to do with global attitude toward statistics
   - *deep* variable is *Deep approach* adjusted composite score of the questions connected with deep understanding of statistics
   - *stra* variable is *Strategic approach* adjusted composite score of the questions connected with how strategically the participant approaches the subject
@@ -102,7 +104,7 @@ plot(linear_modelling_for_learning2014_csv_pruned, which=c(1,2,5))
 
 Using these plots we can investigate the assumptions of the model.
 
-1.  We can use the "Residuals vs fitted" plots to investigate the constant variance assumption. If the variance is constant, we sould expect to see point disctributed without noticeable structure i.e. randomly. This is more or less what we see in our data. Although the points around 28 on the x axis seem to be bunched up, this may also be the result of low n-numbers, so we can assume constant vatiance.
-2. The q-q resitulas plot can be used to identify whether the "normal distribution of residuals" is met. The middle part of the plot follows the 45 degree line, meaning that the distribution is close to normal for the bulk of the data. The tails of the plot do deviate form the line, meaning that there is a deviation form the perfect normality. At the bottom left there are 3 points that can be considered outliers. Further investigation is needed to determine whether these point should not be included into furhter analysis.
-3. The residulas vs Leverage plot shows whtehter the data contains influential outliers. Three points are highlighted: 71, 56 and 35. These should be investigated to determine if the data is fine, for example there can be a data entry mistake, missing value problem, or a true outlier. The points 56 and 35 are present on both the q-q and the residuals vs leverage plots, so the next step would be checking the data to see what happened to these points.
+1.  We can use the "Residuals vs fitted" plots to investigate the constant variance assumption. If the variance is constant, we should expect to see point distributed without noticeable structure i.e. randomly. This is more or less what we see in our data. Although the points around 28 on the x axis seem to be bunched up, this may also be the result of low n-numbers, so we can assume constant variance.
+2. The q-q recapitulates plot can be used to identify whether the "normal distribution of residuals" is met. The middle part of the plot follows the 45 degree line, meaning that the distribution is close to normal for the bulk of the data. The tails of the plot do deviate form the line, meaning that there is a deviation form the perfect normality. At the bottom left there are 3 points that can be considered outliers. Further investigation is needed to determine whether these point should not be included into furhter analysis.
+3. The residuals vs Leverage plot shows whitewater the data contains influential outliers. Three points are highlighted: 71, 56 and 35. These should be investigated to determine if the data is fine, for example there can be a data entry mistake, missing value problem, or a true outlier. The points 56 and 35 are present on both the q-q and the residuals vs leverage plots, so the next step would be checking the data to see what happened to these points.
 
