@@ -2,15 +2,16 @@
 
 *Describe the work you have done this week and summarize your learning.*
 
-## Data wrangling.
+## 2.1 Data wrangling.
 
 After understanding the metadata file and skipping the Finnish language instructions that were unnecessary it was easy to prepare a data file [this data file](https://github.com/crastr/IODS-project/blob/master/data/learning2014.txt). The script can be found [here](https://github.com/crastr/IODS-project/blob/master/data/create_learning2020.R).I used plyr and tiidyverse to do the conversions of the raw data into a workable file.
 
-## Analysis
+## 2.2 Analysis
 The dataset is the result of a survey on teaching and learning that was conducted as a research project in 2014.
 The dataset was loaded in the next chunk and the dimensions and structure of the document are output.
 ```{r}
 library(tidyverse)
+library(GGally)
 ```
 
 ```{r}
@@ -30,51 +31,78 @@ Briefly:
   - *stra* variable is *Strategic approach* adjusted composite score of the questions connected with how strategically the participant approaches the subject
   - *surf* variable is *Surface approach* adjusted composite score of the questions connected with how whether the participant can understand the material deeply and whther the participants has problems studying.
 
+
+### 2.2.2 Data exploration
+
+#### 2.2.2.1 Summary for the variables
+
+
 ```{r summaries}
+
 summaries <- learning2014_csv %>%
   summarise(across(where(is.numeric), list(mean = ~mean(.), sd = ~sd(.), min = ~min(.), max = ~max(.), median = ~median(.))))
 
 print(t(summaries))
 ```
 
-```{r}
-ggplot(learning2014_csv, aes(x = age)) +
-  geom_histogram(binwidth = 5, fill = "#D6604D", color = "black") +
-  labs(title = "Age Distribution", x = "Age", y = "Count") +
-  theme_minimal()
+#### 2.2.2.2 Graphical data summary
 
-# Boxplot for 'attitude'
-ggplot(learning2014_csv, aes(x = deep)) +  # x = 1 creates a single boxplot
-  geom_density(fill = "#D6604D", color = "black") +
-  labs(title = "Boxplot of Deep approach score", x = "", y = "Attitude") +
-  theme_minimal()
 
-# Boxplot for 'attitude'
-ggplot(learning2014_csv, aes(x = stra)) +  # x = 1 creates a single boxplot
-  geom_density(fill = "#D6604D", color = "black") +
-  labs(title = "Boxplot of strategic approach score", x = "", y = "Stra") +
-  theme_minimal()
+```{r Plotting of data using the ggAlly}
 
-ggplot(learning2014_csv, aes(x = surf)) +  # x = 1 creates a single boxplot
-  geom_density(fill = "#D6604D", color = "black") +
-  labs(title = "Boxplot of surface approach score", x = "", y = "") +
-  theme_minimal()
+ggpairs(learning2014_csv, mapping = aes(), lower = list(combo = wrap("facethist", bins = 20))) + theme_minimal()
 
-# For the categorical variable 'gender', a bar chart can be used
-ggplot(learning2014_csv, aes(x = points)) +
-  geom_bar(fill = "#D6604D", color = "black") +
-  labs(title = "Points Distribution", x = "Points", y = "Count") +
-  theme_minimal()
 ```
 
+**Description**
 
+1. The gender distribution is uneven
+2. The age Is also skewed to younger participants, with few only a older participants in each gender
+3. No other variable has a stark clustering behaviour
+3. There are significant correlations between variables
+    - **Negative**:
+      - surf/deep - these are expected to be inversely correlated, as are surf/attitude and surf/strategy
+      - age/surf appear to be negatively correlated, but the p-value is between 0.5 and 0.1, as it is for surf/points.
+    - **Positive**:
+      - attitude/points, stra/points
+      
 
-- Describe your work and results clearly. 
-- Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods.
-- Assume the reader has no previous knowledge of your data or the more advanced methods you are using.
+These results make sense at the first glance.
 
+  
+### 2.2.3 Linear regression
+
+I have chosen the three variables to check: attitude, age and surf
 ```{r}
-date()
+linear_modelling_for_learning2014_csv  <- lm(points ~ surf + attitude + age, data = learning2014_csv) 
+summary(linear_modelling_for_learning2014_csv)
 ```
 
-Here we go again...
+Only one explanatory variable showed statistically significant connection to the points outcome, thus only attitude variable will be kept for the next modelling step.
+
+```{r}
+linear_modelling_for_learning2014_csv_pruned  <-lm(points ~ attitude, data = learning2014_csv) 
+summary(linear_modelling_for_learning2014_csv_pruned)
+
+```
+The second model is simpler, but have not lost too much of the explanatory power:
+  - The p-value is comparably low, much lower than 0.001, meaning that there is strong support to reject the hypothesis that the 2 variables have no connection.
+  - The estimate shows how the two variables are connected, for one unit change in points the attitude variable changes by 3.5255
+The adjusted R-value  0.1856 is relatively low, indicating that the model may not be very effective in predicting or explaining the dependent variable. This might be due to various reasons like missing important predictors, non-linear relationships, or high levels of noise in the data.
+
+### 2.2.3.1 Linear model diagnositic plots
+
+
+
+```{r}
+
+plot(linear_modelling_for_learning2014_csv_pruned, which=c(1,2,5))
+
+```
+
+Using these plots we can investigate the assumptions of the model.
+
+1.  We can use the "Residuals vs fitted" plots to investigate the constant variance assumption. If the variance is constant, we sould expect to see point disctributed without noticeable structure i.e. randomly. This is more or less what we see in our data. Although the points around 28 on the x axis seem to be bunched up, this may also be the result of low n-numbers, so we can assume constant vatiance.
+2. The q-q resitulas plot can be used to identify whether the "normal distribution of residuals" is met. The middle part of the plot follows the 45 degree line, meaning that the distribution is close to normal for the bulk of the data. The tails of the plot do deviate form the line, meaning that there is a deviation form the perfect normality. At the bottom left there are 3 points that can be considered outliers. Further investigation is needed to determine whether these point should not be included into furhter analysis.
+3. The residulas vs Leverage plot shows whtehter the data contains influential outliers. Three points are highlighted: 71, 56 and 35. These should be investigated to determine if the data is fine, for example there can be a data entry mistake, missing value problem, or a true outlier. The points 56 and 35 are present on both the q-q and the residuals vs leverage plots, so the next step would be checking the data to see what happened to these points.
+
