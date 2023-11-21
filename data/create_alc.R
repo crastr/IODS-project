@@ -17,15 +17,15 @@ glimpse(student_por)
 diff_cols <- c("failures", "paid", "absences", "G1", "G2", "G3")
 
 
-## Modifying the dataframe according to specificatioions
+## Modifying the dataframe according to specification
 joiner_vec <- setdiff(colnames(por), diff_cols)
 
 math_por <- inner_join(student_mat, student_por, by = joiner_vec, suffix = c(".math", ".por"))
 
 str(math_por)
-
+# 370 obs. of  39 variables
 dim(math_por)
-
+# the merged data contains 370 rows  39 columns
 alc <- select(math_por,all_of(joiner_vec))
 
 for(col_name in diff_cols) {
@@ -50,5 +50,8 @@ alc <- mutate(alc, average_alc = (Dalc + Walc) / 2)
 
 alc <- mutate(alc, high_use = average_alc > 2)
 glimpse(alc)
+#Rows: 370
+#Columns: 35  
+# All is fine
 write_csv(alc, "/home/alex/ods_course/IODS-project_R/data/aa_alc.csv")
 
