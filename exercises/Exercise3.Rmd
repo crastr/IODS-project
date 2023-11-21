@@ -299,12 +299,13 @@ g1 <- ggplot(data = alc, aes(x = alc_use))
 g1 + geom_bar()
 
 # define a new logical column 'high_use'
-alc <- mutate(alc, high_use = "change me!" > 2)
+alc <- mutate(alc, high_use = alc_use > 2)
 
 # initialize a plot of 'high_use'
-g2 <- ggplot(data = alc)
+g2 <- ggplot(data = alc,aes(x = high_use))
 
 # draw a bar plot of high_use by sex
+g2 + geom_bar() + facet_wrap("sex")
 
 
 ```
@@ -457,7 +458,9 @@ g1 <- ggplot(alc, aes(x = high_use, y = G3))
 g1 + geom_boxplot() + ylab("grade")
 
 # initialize a plot of high_use and absences
+g1 <- ggplot(alc, aes(x = high_use, y = absences))
 
+g1 + geom_boxplot() + ylab("absences")
 
 # define the plot as a box plot and draw it
 

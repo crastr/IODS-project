@@ -1,1 +1,280 @@
 # 3: Logistic regression
+
+#### Necessary packages
+
+```{r}
+
+if (!require(tidyverse) == T) {
+  install.packages("tidyverse")
+}
+library(tidyverse)
+
+
+if (!require(gt) == T) {
+  install.packages("gt")
+}
+library(gt)
+
+```
+
+
+## 3.1 Data wrangling
+
+The dataframes were merged a modified according to the instructions. The resulting dataframe contains 370 observations with 35 columns. The r-script used is [here](https://github.com/crastr/IODS-project/blob/master/data/create_alc.R).
+
+## 3.2 Read the file and describe the data a bit
+
+```{r}
+aa_alc <- read_csv("/home/alex/ods_course/IODS-project_R/data/aa_alc.csv")
+
+```
+```{r}
+
+str(aa_alc)
+
+```
+```{r}
+colnames(aa_alc)
+
+```
+
+The data show student achievement in secondary education of two Portuguese schools, the data contains 370 observations of 35 variables . The data attributes include student grades, demographic, social and school related features) and it was collected by using school reports and questionnaires. The different features can be used to analyse the dataset and make predictions. A more detailed information can be found [here](http://www.archive.ics.uci.edu/dataset/320/student+performance)
+
+1. **"school"**: The name or type of school the student attends.
+2. **"sex"**: The student's gender.
+3. **"age"**: The student's age.
+4. **"address"**: The student's home address or type of locality (urban/rural).
+5. **"famsize"**: The size of the student's family.
+6. **"Pstatus"**: The marital status of the student's parents.
+7. **"Medu"**: The mother's education level.
+8. **"Fedu"**: The father's education level.
+9. **"Mjob"**: The mother's job.
+10. **"Fjob"**: The father's job.
+11. **"reason"**: The reason for choosing this school.
+12. **"guardian"**: The student's primary guardian.
+13. **"traveltime"**: Time taken to travel to school.
+14. **"studytime"**: Time spent on studying outside of school.
+15. **"schoolsup"**: Whether the student receives school support.
+ 
+16. **"famsup"**: Whether the student receives family support.
+17. **"activities"**: Participation in extracurricular activities.
+18. **"nursery"**: Whether the student attended nursery school.
+19. **"higher"**: Aspirations for higher education.
+20. **"internet"**: Access to the internet at home.
+21. **"romantic"**: Involvement in a romantic relationship.
+22. **"famrel"**: Quality of family relationships.
+23. **"freetime"**: Amount of free time after school.
+24. **"goout"**: Frequency of going out with friends.
+25. **"Dalc"**: Daily alcohol consumption.
+26. **"Walc"**: Weekly alcohol consumption.
+27. **"health"**: General health status.
+28. **"failures"**: Number of past class failures.
+29. **"paid"**: Whether the student is enrolled in extra paid classes.
+30. **"absences"**: Number of school absences.
+ 
+31. **"G1"**: Grade in the first period.
+32. **"G2"**: Grade in the second period.
+33. **"G3"**: Final grade.
+34. **"average_alc"**: Average alcohol consumption (perhaps a computed variable from Dalc and Walc).
+35. **"high_use"**: Indicator of high alcohol use (likely a derived variable).
+
+### 3.3  Choosing the variable
+
+I decided to look at **"failures"**, **"absences"**, **"freetime"** and **"famrel"**.
+I would expect that:
+
+1. The failures might be positively associated with the higher consumption
+2. The abscences might also be positively associated with the higher consumption
+3. The freetime may be associated with weekly consuption, but It is possible that the association will be inverse.
+4. The family relations may be inversely correlated.
+
+### 3.4 Testing the assumptions:
+
+
+```{r}  
+summaries <- aa_alc %>% group_by(high_use) %>% select(.,c("failures", "absences", "freetime", "famrel","high_use")) %>% 
+  summarise(across(where(is.numeric), list(Average = ~mean(.), sd = ~sd(.))))
+```
+
+```{r, results=T}
+gt(summaries) %>% cols_align("left") %>% opt_stylize(color="gray", style=3)  %>% tab_header("Table for chosen variables")
+```
+
+These are the averages and standard deviation values for all the variables, to better see which variables are interesting to look at closer.
+
+First looking at overall structure, whehther there is something to connect the chosen variables.
+
+```{r}
+
+ggpairs(select(aa_alc,c("failures", "absences", "freetime", "famrel","high_use")), mapping = aes(), lower = list(combo = wrap("facethist", bins = 20))) + theme_minimal()
+
+```
+
+As it turns out the free time is strongly correlated with family relations, which I did not expect. 
+
+#### Failures
+```{r}
+ggpairs(select(aa_alc,c("failures","high_use")), mapping = aes(), lower = list(combo = wrap("facethist", bins = 20))) + theme_minimal()
+
+```
+
+The number of failures is slightly higher in the high consumption group, but not bu much. The overwhelming majority of participants in each case have 0 falures. <span style="color: green;">This was expected.</span>.
+
+#### Abscences
+
+```{r}
+ggpairs(select(aa_alc,c("absences","high_use")), mapping = aes(), lower = list(combo = wrap("facethist", bins = 20))) + theme_minimal()
+
+```
+
+The number of absences in the high use groups is higher, <span style="color: green;">as expected</span>. The standard deviation is also much higher in this group, suggesting more variability in the absences.
+
+#### Freetime
+
+
+```{r}
+ggpairs(select(aa_alc,c("freetime","high_use")), mapping = aes(), lower = list(combo = wrap("facethist", bins = 20))) + theme_minimal()
+
+```
+
+The freetime variable has different mean and very similar sd, the high consumption group has a slightly higher average. I was interested in the relation, and <span style="color: brown;">the results are interesting</span>. 
+
+#### Family relation
+
+
+```{r}
+
+ggpairs(select(aa_alc,c("famrel","high_use")), mapping = aes(), lower = list(combo = wrap("facethist", bins = 20))) + theme_minimal()
+
+```
+
+The family relation variable seems to be lower in the high consumption group, <span style="color: green;">as expected</span>. 
+
+
+```{r}
+
+```
+
+
+### 3.5 Using logistic regression
+
+
+```{r}
+first_log_regression <- glm(high_use ~ failures + absences + freetime + famrel, data = aa_alc, family = "binomial")
+
+# create model summary and extract the coeffs
+summary(first_log_regression)
+```
+
+From the model we can see the following:
+
+  - The higher values of **failures absences** and the **freetime** predictors are associated with a higher likelihood of *high_use* being *TRUE*, for **family relations** the opposite is true.
+  - All predictors appear to be statistically significant, as indicated by their p-values and significance codes
+  - The reduction in deviance from null to residual suggests the model with predictors fits better than the null model.
+   - The reduction in deviance from null to residual suggests the model with predictors fits better than the null model - the one without ony predictor variables.
+   
+
+```{r}
+coeffs <- summary(first_log_regression) %>% coefficients()
+coeffs
+```
+```{r}
+OddsRatio <- exp(coeffs)
+confidence <- confint(first_log_regression)
+
+result <- cbind(OddsRatio, confidence)
+result
+```
+Here we can see the same, the first three predictors have positive association with consumption, the **family relation** variable has a negative association. 
+We can see that the strongest connection is with failures, then **freetime** and **famrel**, while the link to **absences** is low. 
+
+It is important to keep in mind that this is logistical regression, not the previosuly investigated linear regression. Tha means that the estimate in this table represents the "odds ratos" and be thought of in terms of likelihood. It means, that for examples in our case the increase in **failures** by one unit increases the likelihood of high alcohol consumption by 1.8.
+
+The results are in agreement with the hypotheses I started with. Interestingly there seems to be a connection between the free time and the consumption levels, which were not obvious when just looking at the data.
+
+### 3.6 Exploring the predictive power
+
+We can use test the predictive of the model that we created earlier to see if it can be used to actually predict the alcohol consumption based on the the four chosen variables. We can predict for each student the probability of increased consumption.
+
+```{r}
+
+
+aa_alc$predicted_probabilities <- predict(first_log_regression, type = "response")  
+
+aa_alc <- mutate(aa_alc,prediction  = predicted_probabilities > 0.5) 
+
+table(Actual = aa_alc$high_use, Predicted = aa_alc$prediction)
+
+
+```
+These are the 2x2 cross tabulation count results.
+
+```{r}
+((table(Actual_percentage = aa_alc$high_use, Predicted_percentage = aa_alc$prediction))/length(aa_alc$prediction)) * 100
+```
+The False outcome was correctly predicted for 236 participants (63%), True was predicted for 26 (7%).  
+
+
+```{R}
+library(ggplot2)
+ggplot(aa_alc, aes(x=high_use, y=prediction)) +
+  geom_jitter(color="blue") +
+  theme_minimal() +
+  labs(title="Actual vs Predicted Alcohol Consumption")
+```
+```{r}
+
+confusion_matrix <- table(Predicted = aa_alc$prediction,Actual = aa_alc$high_use)
+training_error <- 1 - sum(diag(confusion_matrix)) / sum(confusion_matrix)
+training_error
+```
+The total training error was 29%
+
+
+##### 3.6.2 Comparing to simple guessing strategy
+
+We can compare our model to a simple guessing strategy - always predicting the most common class
+
+First we determine which is the bigger group:
+```{r}
+sum(aa_alc$high_use)/length(aa_alc$high_use)
+```
+There are 30% of higher consuming participants, so the more prevalent group is low consuming.
+
+```{r}
+simple_guess_accuracy <- mean(aa_alc$high_use == F)
+model_accuracy <- mean(aa_alc$high_use == aa_alc$prediction)
+```
+```{r}
+simple_guess_accuracy
+```
+```{r}
+model_accuracy
+```
+
+The accuracy of the model is marginally better than guessing.
+
+#### 3.7 Cross-validating the model
+
+We can preform a cross-validation of the model, meaning that we will test the model performance on subset of the same data fo determine how accurately the chosen model can work in practice. For that we will be using the `cv.glm` function from the boot library. The idea is to test how well the model predicts the status using the ten different subset subsets fo the data in sequence. 
+
+
+```{r}
+loss_func <- function(class, prob) {
+  n_wrong <- abs(class - prob) > 0.5
+  mean(n_wrong)
+}
+library(boot)
+
+cv <- cv.glm(data = aa_alc, cost = loss_func, glmfit = first_log_regression, K = 10)
+
+cv$delta[1]
+
+
+```
+The prediction of my model is 0.289 compared to the 0.26, which is worse. I used 4 predictors, and i did not include the sex predictor into my model, which might be important. Additionally two of my chosen factors were correlated quite strongly, so one might not add a lot to the model.
+
+
+
+
+
