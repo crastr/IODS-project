@@ -275,6 +275,121 @@ cv$delta[1]
 The prediction of my model is 0.289 compared to the 0.26, which is worse. I used 4 predictors, and i did not include the sex predictor into my model, which might be important. Additionally two of my chosen factors were correlated quite strongly, so one might not add a lot to the model.
 
 
+#### 3.8
 
+We can try to use all the predictors to see how the number of predictors influences the model parameters. For this we exclude all the predictors that were used to create the outcome variable
 
+First we load additional lobraries
+```{r}
+if (!require(caret) == T) {
+  install.packages("caret")
+}
+library(caret)
 
+if (!require(glmnet) == T) {
+  install.packages("glmnet")
+}
+library(glmnet)
+
+```
+
+```{r}
+
+predictors <- setdiff(colnames(aa_alc), c("Dalc","Walc","average_alc","high_use","predicted_probabilities","prediction" ))
+# Initialize vectors to store errors
+training_errors <- c()
+testing_errors <- c()
+number_of_predictors <- c()
+model_summaries <- list()
+
+aa_alc$high_use <- as.factor(aa_alc$high_use)
+
+# Loop over models with decreasing number of predictors
+for (i in length(predictors):1) {
+    # Select a subset of predictors
+    current_predictors <- predictors[1:i]
+    formula <- as.formula(paste("high_use ~", paste(current_predictors, collapse = "+")))
+    set.seed(123)  # for reproducibility
+    fitControl <- trainControl(method = "cv", number = 10)  # 10-fold cross-validation
+    model <- train(formula, data = aa_alc, method = "glm", family = "binomial", trControl = fitControl)
+    
+    # Store training and testing errors
+    training_errors <- c(training_errors, mean(model$results$Accuracy))
+    testing_errors <- c(testing_errors, 1 - max(model$results$Accuracy))# Replace 'Accuracy' with the appropriate metric
+    number_of_predictors <- c(number_of_predictors, i)
+    model_summaries[[i]] <- model$coefnames
+}
+
+results_df <- data.frame(
+    Number_of_Predictors = number_of_predictors,
+    Training_Error = training_errors,
+    Testing_Error = testing_errors
+)
+
+# Plotting
+ggplot(results_df, aes(x = Number_of_Predictors)) +
+    geom_line(aes(y = Training_Error, colour = "Training Error")) +
+    geom_line(aes(y = Testing_Error, colour = "Testing Error")) +
+    labs(title = "Training and Testing Errors by Number of Predictors",
+         x = "Number of Predictors",
+         y = "Error") +
+    theme_minimal()
+```
+This shows, that the number of predictors makes the model worse, however there is an increase in model performance at 26th point in the plot.
+If we look at the predicot first present in the 26th point:
+
+```{r}
+setdiff(model_summaries[[26]],model_summaries[[25]])
+```
+As we know, the **failures** was a great predictor. So to check how the plot looks if we start with the better predictors I reversed the `predictors` vector. 
+
+```{r}
+
+predictors  <- rev(predictors)
+# Initialize vectors to store errors
+training_errors <- c()
+testing_errors <- c()
+number_of_predictors <- c()
+model_summaries <- list()
+
+# Loop over models with decreasing number of predictors
+for (i in length(predictors):1) {
+    # Select a subset of predictors
+    current_predictors <- predictors[1:i]
+    formula <- as.formula(paste("high_use ~", paste(current_predictors, collapse = "+")))
+    set.seed(123)  # for reproducibility
+    fitControl <- trainControl(method = "cv", number = 10)  # 10-fold cross-validation
+    model <- train(formula, data = aa_alc, method = "glm", family = "binomial", trControl = fitControl)
+    
+    # Store training and testing errors
+    training_errors <- c(training_errors, mean(model$results$Accuracy))
+    testing_errors <- c(testing_errors, 1 - max(model$results$Accuracy))# Replace 'Accuracy' with the appropriate metric
+    number_of_predictors <- c(number_of_predictors, i)
+    model_summaries[[i]] <- model$coefnames
+}
+
+results_df <- data.frame(
+    Number_of_Predictors = number_of_predictors,
+    Training_Error = training_errors,
+    Testing_Error = testing_errors
+)
+
+# Plotting
+ggplot(results_df, aes(x = Number_of_Predictors)) +
+    geom_line(aes(y = Training_Error, colour = "Training Error")) +
+    geom_line(aes(y = Testing_Error, colour = "Testing Error")) +
+    labs(title = "Training and Testing Errors by Number of Predictors",
+         x = "Number of Predictors",
+         y = "Error") +
+    theme_minimal()
+```
+That makes the model better overall, with the minimum value being:
+```{r,echo=FALSE}
+min(results_df$Testing_Error)
+```
+With adding of the guardian variable.
+
+```{r}
+predictors[20]
+```
+This shows that increasing the number of predictors negatively influences the model, but adding valueable predictors imrpoves it.
