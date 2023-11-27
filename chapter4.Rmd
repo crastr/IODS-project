@@ -1,4 +1,4 @@
-## 4: Clustering and classification
+# 4: Clustering and classification
 
 
 ### 4.1.1: Loading necessary libraries
@@ -251,7 +251,7 @@ As we saw earlier the chosen variables have high correlation, and logically shou
 
 ### 4.1.8*: Bonus. Visualising clustering results with a biplot:
 
-The elbow plot shows that the last point with decreased WCSS is 9, so I decided to look what k=9 clustering looks like.
+The elbow plot shows that the last point with decreased WCSS is 6, so I decided to look what k=9 clustering looks like.
 
 ```{r}
 data("Boston")
@@ -259,7 +259,7 @@ data("Boston")
 Boston_scaled <- as.data.frame(scale(Boston))
 
 
-Boston_scaled_km <- kmeans(Boston_scaled, centers = "9")
+Boston_scaled_km <- kmeans(Boston_scaled, centers = "6")
 ```
 
 Redoing the LDA using the cluster as the target classes.
@@ -281,11 +281,12 @@ lda.arrows <- function(x, myscale = 1, arrow_heads = 0.1, color = "red", tex = 0
 classes <- as.numeric(Boston_scaled_km$cluster)
 
 # plot the lda results (select both lines and execute them at the same time!)
-plot(lda.fit, dimen = 2)
-lda.arrows(lda.fit, myscale = 3.5)
+plot(lda.fit, dimen = 2,col = classes,pch = classes)
+lda.arrows(lda.fit, myscale = 3)
 ```
 As we can see, the cluster 2 is saparate from all the othersm and the Charles River variable is the main determinant for this cluster. 
-Clusters 9 and 1 are separate from others, this separation is dependant on the radial roads variable, cluster 6 seems to be seaparated form the mass, and zn is the main contributing factor.
+Clusters 4 and 5 are separate from others, this separation is dependent on the radial roads variable, cluster 5 seems to be separated form the mass.
+
 
 ### 4.1.9*: Bonus. Trainig data that you used to fit the LDA and visualisation:
 
@@ -313,7 +314,6 @@ matrix_product <- as.matrix(model_predictors) %*% lda.fit$scaling
 matrix_product <- as.data.frame(matrix_product)
 ```
 
-Next, install and access the plotly package. Create a 3D plot (cool!) of the columns of the matrix product using the code below.
 
 ```{r}
 
@@ -325,7 +325,7 @@ plot_ly(x = matrix_product$LD1, y = matrix_product$LD2, z = matrix_product$LD3, 
 plot_ly(x = matrix_product$LD1, y = matrix_product$LD2, z = matrix_product$LD3, color = factor(Boston_scaled_km$cluster[indexes]), type= 'scatter3d', mode='markers')
 ```
 
-The crime colouring shows that high crime group is clustered separately, with some med-high groups. The k-means clustering shows clusters 1 and 9 to be together, as in 2d plain, however the second k-cluster is split between the two large clusters.
+The crime colouring shows that high crime group is clustered separately, with some med-high groups. The k-means clustering shows clusters 4 and 5 to be together, as in 2d plain, however the 6th cluster is split between the two large clusters.
 
 
 ## 4.2 Data wrangling for the next week’s data!
