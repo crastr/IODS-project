@@ -36,3 +36,15 @@ output:
 ```{r child = "chapter4.Rmd"}
 # This will include Chapter 3.
 ```
+
+***
+
+```{r child = "chapter5.Rmd"}
+# This will include Chapter 3.
+```
+
+***
+
+```{r child = "chapter6.Rmd"}
+# This will include Chapter 3.
+```

@@ -328,8 +328,6 @@ plot_ly(x = matrix_product$LD1, y = matrix_product$LD2, z = matrix_product$LD3, 
 The crime colouring shows that high crime group is clustered separately, with some med-high groups. The k-means clustering shows clusters 1 and 9 to be together, as in 2d plain, however the second k-cluster is split between the two large clusters.
 
 
-## 4.2 
+## 4.2 Data wrangling for the next week’s data!
 
-Data wrangling for the next week’s data!
-
-
+The R script transforming the data for the next week asignment is in the [repository](https://github.com/crastr/IODS-project/blob/master/data/create_human.R), with the `human.csv` file in the same [directory](https://github.com/crastr/IODS-project/tree/master/data)
