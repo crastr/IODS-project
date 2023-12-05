@@ -1,7 +1,7 @@
-# 4: Clustering and classification
+# 4 Clustering and classification
 
 
-### 4.1.1: Loading necessary libraries
+### 4.1.1 Loading necessary libraries
 ```{r}
 library(MASS)  # For the Boston dataset
 library(ggplot2)  # For graphical representations
@@ -9,7 +9,7 @@ library(caret)  # For data splitting and preprocessing
 library(corrplot)
 
 ```
-### 4.1.2: Loading the data and investigating the data structure
+### 4.1.2 Loading the data and investigating the data structure
 ```{r}
 # Step 1: Load and Explore the Boston Dataset
 data("Boston")
@@ -48,7 +48,7 @@ The variables have the foillowing decriptions:
 - MEDV - Median value of owner-occupied homes in $1000's
 
 
-### 4.1.3: Graphical Overview and Summary of Variables
+### 4.1.3 Graphical Overview and Summary of Variables
 
 ```{r}
 summary(Boston)
@@ -78,7 +78,7 @@ All the relations between the variables can be seen clearly on this figure
 
 
 
-### 4.1.4: Standardising the dataset
+### 4.1.4 Standardising the dataset
 
 As the data described very different phenomena, the values were not directly comparable. E.g. mean value for tax was 408, while nox was ~ 0.55. In order to eliminate that we can standardise the data.
 
@@ -91,7 +91,7 @@ summary(scaled_Boston)
 
 Now all the means are the same - 0. This standardization makes variables more comparable and often improves machine learning model performance.
 
-#### 4.1.4.1: Creating a categorical variable from scaled crime rate
+#### 4.1.4.1 Creating a categorical variable from scaled crime rate
 
 Using quantiles as breakpoints, and removing the old crime rate variable.
 
@@ -114,7 +114,7 @@ train_set <- scaled_Boston[indexes, ]
 test_set <- scaled_Boston[-indexes, ]
 ```
 
-### 4.1.5: Fitting the linear discriminant analysis on the train set
+### 4.1.5 Fitting the linear discriminant analysis on the train set
 
 ```{r}
 # Loading necessary library
@@ -152,7 +152,7 @@ lda.arrows(lda_model, myscale = 2)
 
 The LD1 is influences mostly by rad, the LD2 is influeneces by zn and nox in similar marnitude, but different direction.
 
-### 4.1.6: Fitting the linear discriminant analysis on the train set
+### 4.1.6 Fitting the linear discriminant analysis on the train set
 
 
 ```{r}
@@ -182,7 +182,7 @@ table(Predicted = predictions$class, Actual = test_crime_categories) %>%
 
 The model is reasonably good, especially at the high and low values, and can be used to differentiate high and low groups. The middle groups become muddled.
 
-### 4.1.7: K-means clustering
+### 4.1.7 K-means clustering
 
 Reloading the dataset, scaling and calculating the distances:
 
@@ -249,7 +249,7 @@ pairs(Boston_scaled[,c(2,3)],col = Boston_scaled_km$cluster)
 There seems also to be good separation for industry and zn variables, two clusters: low indus and high zn, and vice versa.
 As we saw earlier the chosen variables have high correlation, and logically should also be correlated. So these results make sense.
 
-### 4.1.8*: Bonus. Visualising clustering results with a biplot:
+### 4.1.8* Bonus. Visualising clustering results with a biplot:
 
 The elbow plot shows that the last point with decreased WCSS is 6, so I decided to look what k=9 clustering looks like. And redoing the LDA using the cluster as the target classes.
 
@@ -287,7 +287,7 @@ As we can see, the cluster 3 is saparate from all the othersm and the Charles Ri
 Cluster 5 is separate from others, this separation is dependent on the radial roads variable.
 
 
-### 4.1.9*: Bonus. Trainig data that you used to fit the LDA and visualisation:
+### 4.1.9* Bonus. Trainig data that you used to fit the LDA and visualisation:
 
 Installing/loading plotly
 ```{r}

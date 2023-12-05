@@ -47,6 +47,7 @@ Graphical summary:
 ```{r}
 ggpairs(human_data_, progress = F)
 ```
+
 1. All the distributions are skewed, meaning that extreme values are more common for some variables. Life expectancy tends to high, GNI_C tend to low.
 2. A lot of variables are strongly correlated positively and negatively:
     - Life expectancy, education levels, GNI are positively correlated with good significance, and are negatively correlated with "Maternal Mortality Ratio" and  "Adolescent Birth Rate" with similar significance. This is to be expected.
@@ -113,14 +114,15 @@ biplot(human_data_PCA_scaled, choices = 1:2, xlab = names_for_the_biplot[1], yla
 ```
  
  These results make al ot more sense and also are in concordance with what I originally concluded form the first graphical analysis:
-  1. PC1 is negatively associated with GNI, Life expectancy, Education and the ratio of educated females in the  - all correlted positivley, and increase in MMortality and adolecent births leads to increase in PC1. These values were correlated to each other.
+  1. PC1 is negatively associated with GNI, Life expectancy, Education and the ratio of educated females in the  - all correlated positiveley, and increase in MMortality and adolescent births leads to increase in PC1. These values were correlated to each other.
   2. PC2 increases with the number of female representatives and female percentage in labour force, which are correlated to each other.
 As mentioned above the differences are due to the GNI being a much larger influence without scaling. With scaling we can actually see what's happening.
 
 ### 5.2.4 My interpretation of the data.
 
-The PC1 is related to what is usually descirbed as development level of a nation. Developed nations have high income, better education and life expectancy, which developing conuthries and failed states have high adolescent pregnancies and mortality. It is widely [believed](https://blogs.worldbank.org/health/female-education-and-childbearing-closer-look-data), that female education is the main driving factor in the population reproducibility index decrease.
-The second PC shows that there is a connection between female representation in government and overall inclusion in work force, but it is not strictly connected ot the "PC1 - development level" meaning that in poorer countries females can also participate in the govrnment and workforce. Also in petrocraties of the Middle East, despite high GNI and associated parameters females have lower representation.
+The PC1 is related to what is usually described as development level of a nation. Developed nations have high income, better education and life expectancy, with developing countries and failed states have high adolescent pregnancies and mortality. It is widely [believed](https://blogs.worldbank.org/health/female-education-and-childbearing-closer-look-data), that female education is the main driving factor in the population reproducibility index decrease.
+
+The second PC shows that there is a connection between female representation in government and overall inclusion in work force, but it is not strictly connected to the "PC1 - development level" meaning that in poorer countries females can also participate in the government and workforce. Also in petrocracies of the Middle East, despite high GNI and associated parameters females have lower representation.
 
 
 ### 5.2.5 Exploring the tea data and analysis

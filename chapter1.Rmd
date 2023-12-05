@@ -1,6 +1,6 @@
 
-# About the project
-## A short description and a link to the githuib repository
+# 1 About the project
+## 1.1 A short description and a link to the githuib repository
 
 This is a course that should help me to better work with data analysis in the future. I already *love* __markdown__ ***:)***. I have R knowledge, but I never completed a course in the language, so sometimes I find I am doing very simple things the hardest way imaginable. I hope this course will close these gaps in my knowledge.
 
