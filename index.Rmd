@@ -2,12 +2,14 @@
 title: "IODS course project"
 author: "Alexey Afonin"
 output:
-  html_document:
+  rmdformats::material:
+    # downcute_theme: "material"
     lightbox: true
     gallery: true
     theme: cosmo
-    toc: true
-    toc_depth: 2
+    # toc: true
+    code_folding: show
+    # toc_depth: 2
     fig_caption: true
     # fig_width: 6
     # fig_height: 4
