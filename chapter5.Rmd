@@ -1,1 +1,156 @@
 # 5: Dimensionality reduction techniques
+
+## 5.1 Data wrangling
+The data wrangling was continued in this [script](https://github.com/crastr/IODS-project/blob/master/data/create_human.R) 
+ These are the descritions, a more detailed information can be found here: https://hdr.undp.org/data-center/documentation-and-downloads, first and second table:
+ 
+ - HDI_rank: "HDI Rank" in the first table, indicating the country's global ranking based on the Human Development Index.
+ - Country: The name of the country being evaluated, present in both tables.
+ - HDI: "Human Development Index (HDI) Value" in the first table, measuring average achievement in key human development dimensions.
+ - LifeExp_B: "Life Expectancy at Birth (years)" from the first table, showing the average number of years a newborn is expected to live under current mortality rates.
+ - EduExp: "Expected Years of Schooling (years)" in the first table, estimating total years of schooling a child is expected to receive.
+ - EduMean: "Mean Years of Schooling (years)" in the first table, representing the average years of education received by people aged 25 and older.
+ - GNI_C: "Gross National Income (GNI) Per Capita (2017 PPP $)" from the first table, indicating the average income of a country's citizens, adjusted to purchasing power parity.
+ - GNI_C_HDIrank: "GNI Per Capita Rank Minus HDI Rank" from the first table, showing the difference between the country's GNI per capita rank and its HDI rank.
+ - GII_Rank: The ranking of the country in the Gender Inequality Index, part of the second table.
+ - GII: "Gender Inequality Index" from the second table, measuring gender disparities in reproductive health, empowerment, and economic activity.
+ - MMRatio: "Maternal Mortality Ratio" from the second table, indicating the number of maternal deaths per 100,000 live births.
+ - AdBRate: "Adolescent Birth Rate" from the second table, referring to the number of births per 1,000 women aged 15-19.
+ - RP_p: "Share of Seats in Parliament" in the second table, representing the percentage of parliamentary seats held by women.
+ - F_2ED_p and M_2ED_p: The percentage of the female and male population, respectively, with at least some secondary education, as indicated in the second table.
+ - F_LFPR and M_LFPR: The "Labor Force Participation Rate" for females and males, respectively, from the second table.
+ - FM_2ED_Ratio: A metric comparing the ratio of females to males with at least some secondary education.
+ - FM_LFPR_Ratio: A metric comparing the ratio of females to males labor force.
+ 
+
+## 5.2 Analysis
+
+Loading additional libraries
+```{r}
+if (!require(FactoMineR) == T) {
+  install.packages("FactoMineR")
+}
+library(FactoMineR)
+```
+
+ 
+### 5.2.1 Graphical overview and description of the data
+ 
+  
+```{r}
+human_data_ <- read.csv(file="/home/alex/ods_course/IODS-project_R/data/human.csv")
+human_data_ <- column_to_rownames(human_data_,var ="Country") 
+```
+
+Graphical summary:
+
+```{r}
+ggpairs(human_data_, progress = F)
+```
+1. All the distributions are skewed, meaning that extreme values are more common for some variables. Life expectancy tends to high, GNI_C tend to low.
+2. A lot of variables are strongly correlated positively and negatively:
+    - Life expectancy, education levels, GNI are positively correlated with good significance, and are negatively correlated with "Maternal Mortality Ratio" and  "Adolescent Birth Rate" with similar significance. This is to be expected.
+    - MMortality is correlated with adolscent births, which is to be expected.
+    - Higher secondary education in females is positivly correlated with GNI and life expectancy.
+
+These resutls are not surprising, as a lot of the indexes are associated with the overall wealth, even though there might be outliers.
+ 
+Summary:
+ 
+```{r}
+summary(human_data_)
+```
+ 
+The data is not normalised, so it is necesserily not really comparable.
+ 
+ 
+### 5.2.2 Performing principal component analysis (PCA) on the raw (non-standardized) human data
+ 
+We perform the PCA analysis for non-standardised data to see why it is important:
+ 
+```{r}
+human_data_PCA_raw <- prcomp(human_data_)
+summary(human_data_PCA_raw)
+```
+ 
+Most of the variance is included into the first component.
+
+
+```{r}
+biplot(human_data_PCA_raw, choices = 1:2)
+
+```
+ 
+The GNI_C is mostly contributing to the PC1. That is because GNI_C has values up to 123124, which is a lot more than any other variable. The nations with high GNI_C are to the left.
+ 
+### 5.2.3 Standardising the variables in the human data and repeat the above analysis
+ 
+As we saw earlier the data is to dissimilar to use for PCA, hence scaling:
+ 
+```{r}
+human_data_scaled <- scale(human_data_)
+summary(human_data_scaled)
+
+```
+ 
+```{r}
+human_data_PCA_scaled <- prcomp(human_data_scaled)
+summary(human_data_PCA_scaled)
+```
+```{r}
+human_data_PCA_scaled
+```
+ 
+The PC1 is still the most important component, but now it only explains around 54% of variance, PC2 captures around 16%, then PC3 less than 10% and all the other components display diminishing returns.
+ 
+```{r, fig.width=10, fig.height=10}
+
+names_for_the_biplot <- round(summary(human_data_PCA_scaled)$importance[2, ] * 100, digits = 2)
+names_for_the_biplot <- paste0(names(names_for_the_biplot), " (", names_for_the_biplot, "%)")
+
+biplot(human_data_PCA_scaled, choices = 1:2, xlab = names_for_the_biplot[1], ylab = names_for_the_biplot[2], cex = c(0.5, 0.7))
+
+```
+ 
+ These results make al ot more sense and also are in concordance with what I originally concluded form the first graphical analysis:
+  1. PC1 is negatively associated with GNI, Life expectancy, Education and the ratio of educated females in the  - all correlted positivley, and increase in MMortality and adolecent births leads to increase in PC1. These values were correlated to each other.
+  2. PC2 increases with the number of female representatives and female percentage in labour force, which are correlated to each other.
+As mentioned above the differences are due to the GNI being a much larger influence without scaling. With scaling we can actually see what's happening.
+
+### 5.2.4 My interpretation of the data.
+
+The PC1 is related to what is usually descirbed as development level of a nation. Developed nations have high income, better education and life expectancy, which developing conuthries and failed states have high adolescent pregnancies and mortality. It is widely [believed](https://blogs.worldbank.org/health/female-education-and-childbearing-closer-look-data), that female education is the main driving factor in the population reproducibility index decrease.
+The second PC shows that there is a connection between female representation in government and overall inclusion in work force, but it is not strictly connected ot the "PC1 - development level" meaning that in poorer countries females can also participate in the govrnment and workforce. Also in petrocraties of the Middle East, despite high GNI and associated parameters females have lower representation.
+
+
+### 5.2.5 Exploreing the tea data and analysis
+ 
+ 
+```{r}
+library(FactoMineR)
+tea_data <- read.csv("https://raw.githubusercontent.com/KimmoVehkalahti/Helsinki-Open-Data-Science/master/datasets/tea.csv", stringsAsFactors = TRUE)
+```
+
+
+```{r}
+# View(tea_data)
+```
+
+
+```{r}
+str(tea_data)
+```
+
+Everything is a factor, apart from age. But we can caonvert age to a factor as well, might be worth it.
+
+```{r}
+summary(tea_data)
+```
+
+
+```{r}
+dim(tea_data)
+```
+
+ 
+ 
