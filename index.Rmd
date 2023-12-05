@@ -3,12 +3,14 @@ title: "IODS course project"
 author: "Alexey Afonin"
 output:
   html_document:
+    lightbox: true
+    gallery: true
     theme: cosmo
     toc: true
     toc_depth: 2
     fig_caption: true
-    fig_width: 6
-    fig_height: 4
+    # fig_width: 6
+    # fig_height: 4
 ---
 
 ***

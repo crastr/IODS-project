@@ -123,7 +123,7 @@ The PC1 is related to what is usually descirbed as development level of a nation
 The second PC shows that there is a connection between female representation in government and overall inclusion in work force, but it is not strictly connected ot the "PC1 - development level" meaning that in poorer countries females can also participate in the govrnment and workforce. Also in petrocraties of the Middle East, despite high GNI and associated parameters females have lower representation.
 
 
-### 5.2.5 Exploreing the tea data and analysis
+### 5.2.5 Exploring the tea data and analysis
  
  
 ```{r}
@@ -141,7 +141,7 @@ tea_data <- read.csv("https://raw.githubusercontent.com/KimmoVehkalahti/Helsinki
 str(tea_data)
 ```
 
-Everything is a factor, apart from age. But we can caonvert age to a factor as well, might be worth it.
+Everything is a factor, apart from age. We can shoose the variables to look at. Seems more interesting to choose factual things, rather than emotional responses. The first 18 are the ones to choose from.
 
 ```{r}
 summary(tea_data)
@@ -151,6 +151,61 @@ summary(tea_data)
 ```{r}
 dim(tea_data)
 ```
+```{r}
+keep_tea_columns <- c("Tea", "How", "how", "sex",  "frequency","age_Q")
+
+
+
+# select the 'keep_columns' to create a new dataset
+tea_time <- dplyr::select(tea_data,  all_of(keep_tea_columns))
+```
+I choose theese variables to look at. 
+
+
+```{r, fig.width=10, fig.height=10}
+
+ggpairs(tea_time,progress = F) 
+
+```
+
+```{r}
+summary(tea_time)
+```
+
+People like Earl Grey. There are prefered methods of drinking tea.
+
+```{r}
+mca <- MCA(tea_time)
+```
+
+```{r}
+summary(mca)
+```
+
+
+
+```{r}
+plot(mca, graph.type="ggplot", invisible=c("var","quali.sup","quanti.sup"),cex=0.8)
+
+```
+
+```{r}
+
+plot(mca, graph.type="ggplot", invisible=c("ind"), cex=0.8, habillage="quali")
+
+```
+
+Looking at the plot we can assume that there is a correlation between the age and which tea the person prefers:
+
+  - 15-24 prefer earl gray 
+  - oldest prefer black tea.
+  - 25-35 prefer green tea
+  - Drinking tea straight is a younger quality, older prefer tea with something.
+  - Middle age is associated with green tea bags daily.
+
+
+
+
 
  
  
