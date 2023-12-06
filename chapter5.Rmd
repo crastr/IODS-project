@@ -114,6 +114,7 @@ biplot(human_data_PCA_scaled, choices = 1:2, xlab = names_for_the_biplot[1], yla
 ```
  
  These results make al ot more sense and also are in concordance with what I originally concluded form the first graphical analysis:
+ 
   1. PC1 is negatively associated with GNI, Life expectancy, Education and the ratio of educated females in the  - all correlated positiveley, and increase in MMortality and adolescent births leads to increase in PC1. These values were correlated to each other.
   2. PC2 increases with the number of female representatives and female percentage in labour force, which are correlated to each other.
 As mentioned above the differences are due to the GNI being a much larger influence without scaling. With scaling we can actually see what's happening.
