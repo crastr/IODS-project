@@ -1,23 +1,20 @@
 # 6: Analysis of longitudinal data
-# 6.1: Data wrangling 
-
-The wrangling was performed per instructions and the resulting r-script with commentaries can be found [here](https://github.com/crastr/IODS-project/blob/master/data/meet_and_repeat.R). 
-
-## 6.2.1 Implementing the analyses for rats data
-
-### Loading libraries
+## Loading libraries
 ```{r}
 library(GGally)  # For the Boston dataset
 library(ggplot2)  # For graphical representations
 library(caret)  # For data splitting and preprocessing
 library(corrplot)
 library(lme4)
-
-
 ```
-
-
 First reading the data created previously.
+
+## 6.1: Data wrangling 
+
+The wrangling was performed per instructions and the resulting r-script with commentaries can be found [here](https://github.com/crastr/IODS-project/blob/master/data/meet_and_repeat.R). 
+
+## 6.2.1 Implementing the analyses for rats data
+
 
 
 ```{r}
@@ -308,5 +305,7 @@ summary(bprs_lm_wt_w_t_week_subject)
 ```{r}
 anova(bprs_lm_wt__week_subject,bprs_lm_wt_w_t_week_subject)
 ```
+
 There is practically no difference between the models.
-It seems, that there is no difference between the two treatments on the pbrs outcome.
+
+It seems, that there is no difference between the effect of the two treatments on the pbrs outcome.
