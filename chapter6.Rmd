@@ -1,1 +1,312 @@
 # 6: Analysis of longitudinal data
+# 6.1: Data wrangling 
+
+The wrangling was performed per instructions and the resulting r-script with commentaries can be found [here](https://github.com/crastr/IODS-project/blob/master/data/meet_and_repeat.R). 
+
+## 6.2.1 Implementing the analyses for rats data
+
+### Loading libraries
+```{r}
+library(GGally)  # For the Boston dataset
+library(ggplot2)  # For graphical representations
+library(caret)  # For data splitting and preprocessing
+library(corrplot)
+library(lme4)
+
+
+```
+
+
+First reading the data created previously.
+
+
+```{r}
+
+rats_long <- read_csv("/home/alex/ods_course/IODS-project_R/data/rats_long.csv")
+rats_long <- rats_long %>% mutate(ID = factor(ID), Group = factor(Group))
+```
+
+The we look at the data:
+
+```{r}
+summary(rats_long)
+```
+```{r}
+glimpse(rats_long)
+```
+It would be nice to see the summary per group, since there are three:
+
+```{r}
+rats_long %>% group_by(Group) %>% filter(Time == 1) %>% summarise( Mean_Weight = mean(Weight, na.rm = TRUE), sd_weight = sd(Weight , na.rm = TRUE),weight_count = n())
+```
+For whatever reason the first group has twice the number of rats, the lowest weight and sd. It's not good, seems to be from a different experiment? I am not sure it's really comparable.
+If we plot the wight trajectories we:
+
+```{r}
+
+rats_long %>%  group_by(Group,Time) %>%  summarise( Mean_Weight = mean(Weight, na.rm = TRUE), se_weight = (sd(Weight , na.rm = TRUE)/sqrt(n())),) %>% ungroup() %>%  ggplot(., aes(x = Time, y = Mean_Weight, colour = Group)) +
+  geom_line()+
+  geom_errorbar(aes(ymin=Mean_Weight-se_weight, ymax=Mean_Weight+se_weight), width=0.3,linetype =2 )
+```
+
+The groups had very different starting points and different growth curves.
+We can look at each rat to look for outliers:
+
+```{r}
+
+ggplot(rats_long, aes(x = Time, y = Weight,colour = ID)) +
+  geom_line(aes(group = ID))+
+  # scale_linetype_manual(values = c(1,2,3)) +
+  # geom_point(size=3) +
+  # scale_shape_manual(values = c(1,2,3)) +
+  # geom_errorbar(aes(ymin=Mean_Weight-se_weight, ymax=Mean_Weight+se_weight), width=0.3) +
+  # theme(legend.position = c(0.1,0.3)) +
+  # scale_y_continuous(name = "mean(weight) +/- se(weight)")+
+  facet_wrap(~Group)
+
+```
+
+As we can see, each group has a potential outlier - lowest in the 1st group, highest in the second group, lowest again in the third.
+We can scale the results to see more clearly:
+
+
+```{r}
+rats_long %>%  group_by(Group) %>%  mutate( Weight_scaled = ((Weight-mean(Weight))/sd(Weight))) %>% ungroup() %>%  ggplot(., aes(x = Time, y = Weight_scaled)) +
+  geom_line(aes(group = ID))+
+  geom_text(aes(label = ID))+
+  facet_wrap(~Group)
+
+```
+
+The second rat, the 12th and the 13th are likely ouliers. The 2nd is too little and never recovers. The 12 is too large and gets larger. 13 th start small, but gets larger fater than others. I would look at the original data to see if there was something wrong with these mice. We can remove the outliers for gurther analysis.
+
+```{r}
+
+rats_long_no_outliers <- rats_long %>% filter(ID != "2" & ID != "12" & ID != "13")
+```
+
+
+```{r}
+rats_long_no_outliers %>%  group_by(Group) %>%  mutate( Weight_scaled = ((Weight-mean(Weight))/sd(Weight))) %>% ungroup() %>%  ggplot(., aes(x = Time, y = Weight_scaled)) +
+  geom_line(aes(group = ID))+
+  geom_text(aes(label = ID))+
+  facet_wrap(~Group)
+
+```
+
+Much nicer, I will look at these data next. It's clear without test, that the weights are different. However we are interested in the weight gain, not the weights themselves.
+We should get the percentage of weight gain between the groups. We can add a new variable called percent_change, which will be the percent of body fat gained compared to the previous week
+
+```{r}
+
+rats_long_no_outliers_with_percentage_gained <- rats_long_no_outliers %>%
+  arrange(ID, Time) %>% 
+  group_by(ID) %>%  
+  mutate(
+    weight_previous = lag(Weight),  
+    percent_change = (Weight   - weight_previous) / weight_previous * 100  # Calculate percentage change
+  ) %>%
+  replace_na(list(percent_change = 0))
+
+```
+
+We can plot the weight change:
+
+```{r}
+rats_long_no_outliers_with_percentage_gained %>%  ggplot(., aes(x = Time, y = percent_change,colour = ID)) +
+  geom_line(aes(group = ID))+
+  geom_text(aes(label = ID))+
+  facet_wrap(~Group)
+```
+
+```{r}
+rats_long_no_outliers_with_percentage_gained <- rats_long_no_outliers_with_percentage_gained %>%
+  arrange(ID, Time) %>%  # Sort by individual and then by timepoint
+  group_by(ID) %>%  # Group by individual
+  mutate(
+    starting_weight = dplyr::first(Weight)  # Get the starting weight for each individual
+  ) 
+```
+
+These plots show us that the 2nd diet seems to be the most reliable, as the mice grow without much variation. The first and third diet have larger variance in weight gain, which might be not desirable.
+
+We can test the differences pair-wise using t-test:
+
+First we chack for equal variance, and then perform t-test.
+
+
+1. Groups 1 and 2
+
+```{r}
+r_1_2 <- rats_long_no_outliers_with_percentage_gained %>% filter(Group != 3 ) 
+
+bartlett.test(r_1_2$percent_change, r_1_2$Group)
+```
+
+
+```{r}
+t.test(percent_change ~ Group, data = r_1_2,var.equal = F)
+```
+
+2. Groups 2 and 3
+
+```{r}
+r_2_3 <- rats_long_no_outliers_with_percentage_gained %>% filter(Group != 1 ) 
+
+bartlett.test(r_2_3$percent_change, r_2_3$Group)
+```
+
+
+```{r}
+
+t.test(percent_change ~ Group, data = r_2_3,var.equal = F)
+
+```
+
+3. Groups 1 and 3
+
+```{r}
+r_1_3 <- rats_long_no_outliers_with_percentage_gained %>% filter(Group != 2 ) 
+
+bartlett.test(r_1_3$percent_change, r_1_3$Group)
+```
+
+```{r}
+
+
+t.test(percent_change ~ Group, data = r_1_3,var.equal = T)
+
+```
+That means, that there is only one significant difference between groups 2 and 3. 
+
+We can also perform ANOVA analysis to see if the results are the same. It may be wise to also check for if the starting weight into the formula
+
+```{r}
+
+percent_change_fit <- lm(percent_change ~ Group + starting_weight, data = rats_long_no_outliers_with_percentage_gained)
+anova(percent_change_fit)
+
+```
+```{r}
+
+percent_change_fit23 <- lm(percent_change ~ Group + starting_weight, data = r_2_3)
+anova(percent_change_fit23)
+
+```
+
+```{r}
+
+percent_change_fit13 <- lm(percent_change ~ Group + starting_weight, data = r_1_3)
+anova(percent_change_fit13)
+
+```
+
+ANOVA did not show significant differences between the three groups in the percentage of weight gained. However there is still a difference between the 2nd and 3rd group. Starting weight is also very improtant, as I suspected. The results are not really comparable.
+
+
+## 6.2.2 Implementing the analyses for BPRS data
+
+To
+
+```{r}
+
+bprs_long <- read_csv("/home/alex/ods_course/IODS-project_R/data/bprs_long.csv")
+
+bprs_long <- bprs_long %>% mutate(treatment = factor(treatment), subject = factor(subject))
+
+```
+
+```{r}
+summary(bprs_long)
+
+```
+There should be 40 subjects, but we only have 20 subject names. That means that for this analysis we should first make a new variable, identifying the different humans correctly:
+
+```{r}
+bprs_long$human <- paste0(bprs_long$subject,"_",bprs_long$treatment)
+```
+
+
+We can visualise the data first:
+
+```{r}
+
+bprs_long %>%  ggplot(., aes(x = week, y = pbrs,colour = treatment)) +
+  geom_line(aes(group = human))
+  # scale_linetype_manual(values = c(1,2,3)) +
+  # geom_point(size=3) +
+  # scale_shape_manual(values = c(1,2,3)) +
+  # geom_errorbar(aes(ymin=Mean_Weight-se_weight, ymax=Mean_Weight+se_weight), width=0.3) +
+  # theme(legend.position = c(0.1,0.3)) +
+  # scale_y_continuous(name = "mean(weight) +/- se(weight)")+
+   # facet_wrap(~treatment)
+
+```
+
+Not much sense in the data visualisation. So we use linear modelling. As we know, the data is from the same individuals at multiple timepoints, the indivudal responses are very important.
+
+First try without random intercept model.
+
+```{r}
+bprs_lm_wt <- lm(pbrs ~ week + treatment, data = bprs_long)
+summary(bprs_lm_wt)
+
+
+```
+There is a significant connection with the week variable, and no with treatment, however the model is not adequate. We can use a random intercept model. Each test subject can have different regression slope intercepts. There is no assumption that the observation are independent, which is good, because they are not 
+
+```{r}
+bprs_lm_wt__subject <- lmer(pbrs ~ week + treatment + (1 | human), data = bprs_long, REML = FALSE)
+
+# Print the summary of the model
+
+summary(bprs_lm_wt__subject)
+```
+
+The model is more suitable to this data. Looking at the random effects, the variance is 97, sd 9.8 and the residual is 54. We can check the confidence intervals. 
+
+```{r}
+confint(bprs_lm_wt__subject)
+```
+
+Still no treatment effect, as the 0 is inside the interval for treatment.
+
+We can try to improve the model by adding week as a random slope variable:
+
+
+```{r}
+bprs_lm_wt__week_subject<-lmer(pbrs ~ week + treatment + (week | human), data = bprs_long, REML = FALSE)
+
+
+summary(bprs_lm_wt__week_subject)
+```
+
+The variance in random effects is much higher, residual is lower. we can check the confidence interval:
+
+```{r}
+confint(bprs_lm_wt__subject)
+```
+
+Still no effect of treatment.
+
+
+```{r}
+
+anova(bprs_lm_wt__subject,bprs_lm_wt__week_subject)
+
+```
+
+Both the A and B criteria are lower with the more complex model, all that means that new model is better.
+We can add an interaction variable to the model. This will check, if the effect of treatment is different depending on the week.
+
+```{r}
+
+bprs_lm_wt_w_t_week_subject <- lmer(pbrs ~ week + treatment + week*treatment + (week | human), data = bprs_long, REML = FALSE)
+summary(bprs_lm_wt_w_t_week_subject)
+```
+
+```{r}
+anova(bprs_lm_wt__week_subject,bprs_lm_wt_w_t_week_subject)
+```
+There is practically no difference between the models.
+It seems, that there is no difference between the two treatments on the pbrs outcome.
