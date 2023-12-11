@@ -308,4 +308,4 @@ anova(bprs_lm_wt__week_subject,bprs_lm_wt_w_t_week_subject)
 
 There is practically no difference between the models.
 
-It seems, that there is no difference between the effect of the two treatments on the pbrs outcome.
+It seems, that there is no difference between the effect of the two treatments on the pbrs outcome. However there is a difference dependent on the week.
